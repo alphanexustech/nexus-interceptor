@@ -5,7 +5,7 @@ import json
 from bson import json_util
 
 # CORS dependecies
-from flask.ext.cors import CORS
+from flask_cors import CORS
 
 app = Flask(__name__)
 
