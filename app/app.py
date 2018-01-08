@@ -4,7 +4,7 @@ from flask import Flask
 import json
 from bson import json_util
 
-# CORS dependecies
+# CORS dependencies
 from flask_cors import CORS
 
 app = Flask(__name__)
