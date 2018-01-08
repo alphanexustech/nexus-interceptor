@@ -9,7 +9,7 @@ from config import configurations
 # Databases
 from config.databases import affect_analysis
 
-# mongo dependecies
+# mongo dependencies
 import pymongo
 from flask_pymongo import ObjectId
 
@@ -32,10 +32,10 @@ def save_record(collection_name, content, data):
 
     # Make sure the username and id are matched, if present
     try:
-        content['id'] = data['id']
+        content['user_id'] = data['id']
         content['username'] = data['username']
     except Exception as e:
-        content['id'] = None
+        content['user_id'] = None
         content['username'] = None
         print(e)
     collection.insert(content)
@@ -53,20 +53,31 @@ def analyze_emotion_set(data=None):
     # return content
     return jsonify(status="success", data=json.loads(r.content))
 
-def get_total_analysis_count(collection):
+def get_total_analysis_count(collection, user_id):
 
-    cursor = affect_analysis.db[collection].find().sort('_id', pymongo.DESCENDING); # find all
+    cursor = affect_analysis.db[collection].find({"user_id": user_id}).sort('_id', pymongo.DESCENDING); # find all
     data = {}
     data['corpus_length'] = cursor.count()
 
     return data
 
-def retrieve_all_run_analyses(collection=None, page=None, count_per_page=None):
+
+def retrieve_all_run_analyses_statistics(collection=None, user_id=None):
+
+    data = get_total_analysis_count(collection, user_id)
+
+    return jsonify(
+            status="success",
+            date=configurations.utc,
+            data=json.loads(json.dumps(data, default=json_util.default)),
+            )
+
+def retrieve_all_run_analyses(collection=None, page=None, count_per_page=None, user_id=None):
 
     x = (int(page) - 1) * int(count_per_page)
     y = int(page) * int(count_per_page)
 
-    cursor = affect_analysis.db[collection].find().sort('_id', pymongo.DESCENDING); # find all
+    cursor = affect_analysis.db[collection].find({"user_id": user_id}).sort('_id', pymongo.DESCENDING); # find all
     data = []
     for i in cursor[x:y]:
         truncated_emotion_set = []
@@ -82,7 +93,7 @@ def retrieve_all_run_analyses(collection=None, page=None, count_per_page=None):
             i['doc'] = i['doc'][0:400] + '...'
         data.append(i)
 
-    total_analyses = get_total_analysis_count(collection)['corpus_length']
+    total_analyses = get_total_analysis_count(collection, user_id)['corpus_length']
 
     return jsonify(
             status="success",
@@ -93,19 +104,9 @@ def retrieve_all_run_analyses(collection=None, page=None, count_per_page=None):
             data=json.loads(json.dumps(data, default=json_util.default)),
             )
 
-def retrieve_all_run_analyses_statistics(collection=None):
+def retrieve_single_run_analysis(collection=None, analysis_id=None, user_id=None):
 
-    data = get_total_analysis_count(collection)
-
-    return jsonify(
-            status="success",
-            date=configurations.utc,
-            data=json.loads(json.dumps(data, default=json_util.default)),
-            )
-
-def retrieve_single_run_anlysis(collection=None, analysis_id=None):
-
-    result = affect_analysis.db[collection].find_one({"_id": ObjectId(analysis_id)})
+    result = affect_analysis.db[collection].find_one({"_id": ObjectId(analysis_id), "user_id": user_id})
 
     return jsonify(
             status="success",
