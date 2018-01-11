@@ -17,6 +17,9 @@ from flask_pymongo import ObjectId
 import json
 from bson import json_util
 
+# Date
+from datetime import datetime
+
 def default():
     return 'Hello Scorer!'
 
@@ -65,10 +68,11 @@ def get_total_analysis_count(collection, user_id):
 def retrieve_all_run_analyses_statistics(collection=None, user_id=None):
 
     data = get_total_analysis_count(collection, user_id)
+    utc = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
     return jsonify(
             status="success",
-            date=configurations.utc,
+            date=utc,
             data=json.loads(json.dumps(data, default=json_util.default)),
             )
 
@@ -94,10 +98,11 @@ def retrieve_all_run_analyses(collection=None, page=None, count_per_page=None, u
         data.append(i)
 
     total_analyses = get_total_analysis_count(collection, user_id)['corpus_length']
+    utc = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
     return jsonify(
             status="success",
-            date=configurations.utc,
+            date=utc,
             stats='stats',
             total_analyses=total_analyses,
             count_per_page=count_per_page,
@@ -107,9 +112,10 @@ def retrieve_all_run_analyses(collection=None, page=None, count_per_page=None, u
 def retrieve_single_run_analysis(collection=None, analysis_id=None, user_id=None):
 
     result = affect_analysis.db[collection].find_one({"_id": ObjectId(analysis_id), "user_id": user_id})
+    utc = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
     return jsonify(
             status="success",
-            date=configurations.utc,
+            date=utc,
             data=json.loads(json.dumps(result, default=json_util.default)),
             )
