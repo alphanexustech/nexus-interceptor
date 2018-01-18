@@ -1,0 +1,32 @@
+language: python
+python:
+- '3.6'
+install:
+  - pip install pipenv
+  - pipenv install --system
+script:
+  nosetests
+deploy:
+- provider: s3
+  access_key_id: AKIAJVBBNDHYSNFIIJVA
+  secret_access_key: &1
+    secure: gIUTFpJD8R7tuApe73H6VwAz2AuyahYh+s3fN8vE+oxjgdtkmTtaYzQGHEq6HwNs804859yzQkUQQcxYTvIPMIqexARTKIlGgEPqfZsEWezxDHT+/i8jK3EYCYUBXZdK2lcXvtw42uBjsrdVHQE1+Fs3ANu0o4vGK5aLYhcueJpzKEsu758CBPmf5VmC+2hmmg+c2npKbfDGhiMcMgASFNV/GfyFmEi8Tlukcp2Tfxvuf+86t6BJwmEIY8qVt74HcrHJyMmX3YBTba1+A8av4WNsDneBmmjc5TZsiX0927tGU8nNpAI5f0EkVFz4AsjXT8+64AqbL28wjHFVZjN12ww6Z8Ot8br4QNDh/4Wnaha4+Sxl4Ly4kDMzCVAm/l0buE9YkZDq0tJ7VVk9zq3SxDAGwh0LqwOLbgPV9CxUJWeNHrOQZfMHiq0PH2uOFJYUyA0aZeYXpLu4239DIwSly/TpD7ENKr4aExi4+XOU0BXj0mMgioEFjE/a2aBFQ9ANA0/7dGgjGcWDOq1b/MeoOGjVkHcDWXV9Ybd5MPwM46RwOziq37ICIsI3P+O08iCa1RmQ5cwslwdYTLWldmOlCtI7kltYdPXPiG1FG9xZsCqsabEsfdTwZ6XejyJr9RJ3aH+T/KmafVCvAQLk/tQKMOi6nGNsur7scGn1WVGGYo8=
+  local_dir: dpl_cd_upload
+  skip_cleanup: true
+  on: &2
+    repo: alphanexustech/nexus-interceptor
+    branch: develop
+  bucket: nexus-interceptor-bucket
+- provider: codedeploy
+  access_key_id: AKIAJVBBNDHYSNFIIJVA
+  secret_access_key: *1
+  bucket: nexus-interceptor-bucket
+  key: latest-lg.zip
+  bundle_type: zip
+  application: nexus-interceptor
+  deployment_group: affect-nexus-group
+  on: *2
+before_deploy:
+- zip -r latest-lg app/* scripts/* .gitignore .travis.yml appspec.yml LICENSE Pipfile Pipfile.lock README.md
+- mkdir -p dpl_cd_upload
+- mv latest-lg.zip dpl_cd_upload/latest-lg.zip
