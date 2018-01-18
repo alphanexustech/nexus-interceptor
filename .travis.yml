@@ -27,5 +27,6 @@ deploy:
   deployment_group: affect-nexus-group
   on: *2
 before_deploy:
+- zip -r latest-lg app/* scripts/* .gitignore .travis.yml appspec.yml LICENSE Pipfile Pipfile.lock README.md
 - mkdir -p dpl_cd_upload
 - mv latest-lg.zip dpl_cd_upload/latest-lg.zip
