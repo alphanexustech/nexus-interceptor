@@ -52,7 +52,7 @@ def analyze_emotion_set(data=None):
     r = requests.post(endpoint, json=data)
 
     # save content
-    save_record('beta_records-07jan2018', json.loads(r.content), data)
+    save_record(configurations.analysis_collection, json.loads(r.content), data)
     # return content
     return jsonify(status="success", data=json.loads(r.content))
 
