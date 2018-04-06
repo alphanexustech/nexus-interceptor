@@ -58,12 +58,12 @@ The only difference between old and new versions of data management are that the
 is specified in the request in the newer version. (04-04-18)
 '''
 @scorer.route('/analyses/<collection>/<page>/<count_per_page>/', methods=['GET'])
-def _old_retrieve_all_run_analyses(database=None, collection=None, page=None, count_per_page=None):
+def _old_retrieve_all_run_analyses(collection=None, page=None, count_per_page=None):
     token = request.headers['Authorization']
     user_id = authentication.controllers.authenticate_user(token)
     if user_id: # Passes check - this is a valid token.
         return controllers.retrieve_all_run_analyses(
-            database=database,
+            database='affect', # Only works with 'affect analysis'
             collection=collection,
             page=page,
             count_per_page=count_per_page,
@@ -75,12 +75,12 @@ def _old_retrieve_all_run_analyses(database=None, collection=None, page=None, co
         })
 
 @scorer.route('/analyses/<collection>/<analysis_id>/', methods=['GET'])
-def _old_retrieve_single_run_analysis(database=None, collection=None, analysis_id=None):
+def _old_retrieve_single_run_analysis(collection=None, analysis_id=None):
     token = request.headers['Authorization']
     user_id = authentication.controllers.authenticate_user(token)
     if user_id: # Passes check - this is a valid token.
         return controllers.retrieve_single_run_analysis(
-            database=database,
+            database='affect', # Only works with 'affect analysis'
             collection=collection,
             analysis_id=analysis_id,
             user_id=user_id
@@ -96,7 +96,7 @@ def _old_retrieve_all_run_analyses_statistics(database=None, collection=None):
     user_id = authentication.controllers.authenticate_user(token)
     if user_id: # Passes check - this is a valid token.
         return controllers.retrieve_all_run_analyses_statistics(
-            database=database,
+            database='affect', # Only works with 'affect analysis'
             collection=collection,
             user_id=user_id
             )
@@ -113,7 +113,7 @@ def _old_retrieve_all_run_analyses_statistics(database=None, collection=None):
 #
 ###
 
-@scorer.route('/analyses/<database>/<collection>/<page>/<count_per_page>/', methods=['GET'])
+@scorer.route('/<database>/analyses/<collection>/<page>/<count_per_page>/', methods=['GET'])
 def retrieve_all_run_analyses(database=None, collection=None, page=None, count_per_page=None):
     token = request.headers['Authorization']
     user_id = authentication.controllers.authenticate_user(token)
@@ -130,7 +130,7 @@ def retrieve_all_run_analyses(database=None, collection=None, page=None, count_p
             "status": 'Unauthorized'
         })
 
-@scorer.route('/analyses/<database>/<collection>/<analysis_id>/', methods=['GET'])
+@scorer.route('/<database>/analyses/<collection>/<analysis_id>/', methods=['GET'])
 def retrieve_single_run_analysis(database=None, collection=None, analysis_id=None):
     token = request.headers['Authorization']
     user_id = authentication.controllers.authenticate_user(token)
@@ -146,7 +146,7 @@ def retrieve_single_run_analysis(database=None, collection=None, analysis_id=Non
             "status": 'Unauthorized'
         })
 
-@scorer.route('/analyses/<database>/<collection>/stats/', methods=['GET'])
+@scorer.route('/<database>/analyses/<collection>/stats/', methods=['GET'])
 def retrieve_all_run_analyses_statistics(database=None, collection=None):
     token = request.headers['Authorization']
     user_id = authentication.controllers.authenticate_user(token)

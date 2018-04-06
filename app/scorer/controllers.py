@@ -127,31 +127,45 @@ def retrieve_all_run_analyses(database=None, collection=None, page=None, count_p
     x = (int(page) - 1) * int(count_per_page)
     y = int(page) * int(count_per_page)
     cursor = []
+    data = []
     if database == 'affect':
         cursor = affect_analysis.db[collection].find({"user_id": user_id}).sort('_id', pymongo.DESCENDING); # find all
+        for i in cursor[x:y]:
+            truncated_emotion_set = []
+            for affect in i['emotion_set']:
+                truncated_emotion_set.append({
+                    "emotion": affect['emotion'],
+                    "normalized_r_score": affect['normalized_r_score'],
+                })
+            # Improve run time by only returning back a subset of the emotion_set scoring
+            i['emotion_set'] = truncated_emotion_set
+            # Return back only the first 100 at most characters
+            if len(i['doc']) > 400:
+                i['doc'] = i['doc'][0:400] + '...'
+            data.append(i)
     elif database == 'role':
         cursor = role_analysis.db[collection].find({"user_id": user_id}).sort('_id', pymongo.DESCENDING); # find all
+        for i in cursor[x:y]:
+            truncated_role_set = []
+            for role in i['role_set']:
+                truncated_role_set.append({
+                    "role": role['pretty_name'],
+                    "normalized_r_score": role['scores']['role_density_score'],
+                })
+            # Improve run time by only returning back a subset of the emotion_set scoring
+            i['role_set'] = truncated_role_set
+            # Return back only the first 100 at most characters
+            if len(i['doc']) > 400:
+                i['doc'] = i['doc'][0:400] + '...'
+            data.append(i)
     else:
         return jsonify(
                 status="failure"
                )
 
-    data = []
-    for i in cursor[x:y]:
-        truncated_emotion_set = []
-        for affect in i['emotion_set']:
-            truncated_emotion_set.append({
-                "emotion": affect['emotion'],
-                "normalized_r_score": affect['normalized_r_score'],
-            })
-        # Improve run time by only returning back a subset of the emotion_set scoring
-        i['emotion_set'] = truncated_emotion_set
-        # Return back only the first 100 at most characters
-        if len(i['doc']) > 400:
-            i['doc'] = i['doc'][0:400] + '...'
-        data.append(i)
 
-    total_analyses = get_total_analysis_count(collection, user_id)['corpus_length']
+
+    total_analyses = get_total_analysis_count(database, collection, user_id)['corpus_length']
     utc = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
     return jsonify(
