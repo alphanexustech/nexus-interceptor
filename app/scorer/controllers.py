@@ -9,6 +9,7 @@ from config import configurations
 # Databases
 from config.databases import affect_analysis
 from config.databases import role_analysis
+from config.databases import percept_analysis
 
 # mongo dependencies
 import pymongo
@@ -60,6 +61,23 @@ def analyze_role_set(data=None):
 
 ###
 #
+# Role Computing
+#
+###
+
+def analyze_percept_set(data=None):
+
+    data = request.get_json()
+    endpoint = 'http://' + configurations.api_ip + ':' + configurations.percept_port + '/scorer/' + data.get('percept_set') + '/'
+    r = requests.post(endpoint, json=data)
+
+    # save content
+    save_record('percept', configurations.percept_analysis_collection, json.loads(r.content), data)
+    # return content
+    return jsonify(status="success", data=json.loads(r.content))
+
+###
+#
 # Data Management
 #
 ###
@@ -80,6 +98,12 @@ def save_record(database, collection_name, content, data):
         except Exception as e:
             print(e)
         collection = role_analysis.db[collection_name]
+    elif database == 'percept':
+        try:
+            percept_analysis.db.create_collection(collection_name)
+        except Exception as e:
+            print(e)
+        collection = percept_analysis.db[collection_name]
     else:
         return "Record Save Failed"
 
@@ -103,6 +127,8 @@ def get_total_analysis_count(database, collection, user_id):
         cursor = affect_analysis.db[collection].find({"user_id": user_id}).sort('_id', pymongo.DESCENDING); # find all
     elif database == 'role':
         cursor = role_analysis.db[collection].find({"user_id": user_id}).sort('_id', pymongo.DESCENDING); # find all
+    elif database == 'percept':
+        cursor = percept_analysis.db[collection].find({"user_id": user_id}).sort('_id', pymongo.DESCENDING); # find all
     else:
         return {}
     data = {}
@@ -158,6 +184,21 @@ def retrieve_all_run_analyses(database=None, collection=None, page=None, count_p
             if len(i['doc']) > 400:
                 i['doc'] = i['doc'][0:400] + '...'
             data.append(i)
+    elif database == 'percept':
+        cursor = percept_analysis.db[collection].find({"user_id": user_id}).sort('_id', pymongo.DESCENDING); # find all
+        for i in cursor[x:y]:
+            truncated_percept_set = []
+            for percept in i['percept_set']:
+                truncated_percept_set.append({
+                    "percept": percept['pretty_name'],
+                    "normalized_r_score": percept['scores']['percept_density_score'],
+                })
+            # Improve run time by only returning back a subset of the emotion_set scoring
+            i['percept_set'] = truncated_percept_set
+            # Return back only the first 100 at most characters
+            if len(i['doc']) > 400:
+                i['doc'] = i['doc'][0:400] + '...'
+            data.append(i)
     else:
         return jsonify(
                 status="failure"
@@ -184,6 +225,8 @@ def retrieve_single_run_analysis(database=None, collection=None, analysis_id=Non
         result = affect_analysis.db[collection].find_one({"_id": ObjectId(analysis_id), "user_id": user_id})
     elif database == 'role':
         result = role_analysis.db[collection].find_one({"_id": ObjectId(analysis_id), "user_id": user_id})
+    elif database == 'percept':
+        result = percept_analysis.db[collection].find_one({"_id": ObjectId(analysis_id), "user_id": user_id})
     else:
         return jsonify(
                 status="failure"
