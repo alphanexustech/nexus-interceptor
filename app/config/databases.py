@@ -6,3 +6,6 @@ affect_analysis = PyMongo(app, config_prefix='AFFECTANALYSIS')
 
 app.config['ROLEANALYSIS_DBNAME'] = 'role-analysis'
 role_analysis = PyMongo(app, config_prefix='ROLEANALYSIS')
+
+app.config['PERCEPTANALYSIS_DBNAME'] = 'percept-analysis'
+percept_analysis = PyMongo(app, config_prefix='PERCEPTANALYSIS')

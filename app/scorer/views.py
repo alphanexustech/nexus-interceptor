@@ -44,6 +44,17 @@ def analyze_role_set():
 
 ###
 #
+# Role Computing
+#
+###
+
+@scorer.route('/analyze_percept_set/', methods=['POST'])
+def analyze_percept_set():
+    data = request.get_json()
+    return controllers.analyze_percept_set(data=data)
+
+###
+#
 # Old Data Management View
 #
 # Supports the brittle endpoint structure - only good for 'affect'.
